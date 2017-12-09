@@ -19,7 +19,7 @@ def get_inputs(amount):
     try:
         total = 0
         inputs = []
-        with open('data/unspent_outputs.json', 'r+') as f:
+        with open('blockchain/unspent_outputs.json', 'r+') as f:
             all_inputs = [json.loads(i) for i in f.readlines()]
             # gather neede inputs
             for t_input in all_inputs:

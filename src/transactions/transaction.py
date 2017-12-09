@@ -1,7 +1,7 @@
-from ecdsa import VerifyingKey
+from ecdsa import VerifyingKey, NIST256p
 from ecdsa import BadSignatureError
 from hashlib import sha256
-import data
+from src.transactions import data
 
 class Transaction(object):
     """ Represents a single Transaction object
@@ -85,7 +85,7 @@ class Transaction(object):
             self.outputs = kwargs.pop('outpus')
             self.output_count = kwargs.pop('output_count')
 
-    def create_output(self, sender_address, receiver_address, amount):
+    def add_output(self, sender_address, receiver_address, amount):
         """
         Create a new transaction output for `amount`
         addressed to `receiver_address`
@@ -140,7 +140,7 @@ class Transaction(object):
         # do not sign a received transaction
         if not self.transaction_id:
             signing_key = sender_private_key
-            message = self.compose_message()
+            message = self.__compose_message()
             signature = signing_key.sign(message, hashfunc=sha256)
             # store in unlocking portion of transaction
             self.unlock['signature'] = signature
@@ -167,11 +167,11 @@ class Transaction(object):
 
         sender_public_key = self.unlock['sender_public_key']
         signature = self.unlock['signature']
-        message = self.compose_message()
+        message = self.__compose_message()
 
         # create verifying key from sender's public key
         verifiy_key = VerifyingKey.from_string(sender_public_key,
-                                               curve=NIST256P)
+                                               curve=NIST256p)
         try:
             verify_key.verify(signature, message, hashfunc=sha256)
         except BadSignatureError:
@@ -183,7 +183,7 @@ class Transaction(object):
         if authentic:
             for t_input in self.inputs:
                 # find the refrenced output used as an input
-                refrenced_output = find_output(t_input['transaction_id'],
+                refrenced_output = data.find_output(t_input['transaction_id'],
                                              t_input['block_id'],
                                              t_input['output_index'])
                 # make sure refrenced output is addressed transaction's sender
@@ -207,9 +207,9 @@ class Transaction(object):
         """
         payload = dict(self)
         if not self.transaction_id:
-            self__set_transaction_id
+            self.__set_transaction_id()
         payload['transaction_id'] = self.transaction_id
-        return bytes(payload)
+        return bytes(str(payload), encoding='utf-8')
 
     def get_transaction_id(self):
         """ Return the transaction_id of a finalized transaction """
@@ -217,8 +217,9 @@ class Transaction(object):
 
     def __set_transaction_id(self):
         """ Set the transaction id before finalizing the transaction """
-        payload = dict(self)
-        self.transaction_id  = sha256(bytes(payload)).hexidigest()
+        payload = str(dict(self))
+        self.transaction_id  = sha256(bytes(payload, encoding='utf-8')).hexdigest()
+        
     
         
     def __iter__(self):
