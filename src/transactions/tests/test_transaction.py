@@ -7,6 +7,7 @@ import os
 from src.transactions.transaction import Transaction
 from ecdsa import SigningKey, NIST256p
 
+
 class TestTransactions(unittest.TestCase):
 
     def setUp(self):
@@ -28,13 +29,12 @@ class TestTransactions(unittest.TestCase):
             'amount': 25.0
             }
 
-
         # mock a transactoin to use in a mocked block
         self.tnx = {
             'transaction_id': 'faketransactionid',
-            'unlock': {}, # don't care now
-            'input_count': 0, # don't care now
-            'inputs': [], # don't care now
+            'unlock': {},  # don't care now
+            'input_count': 0,  # don't care now
+            'inputs': [],  # don't care now
             'output_count': 1,
             'outputs': [{
                 'receiver_address': strpubkey,
@@ -66,7 +66,6 @@ class TestTransactions(unittest.TestCase):
         with open('data/blockchain/blocktestblock.json', 'w') as block:
             block.write(json.dumps(self.block))
 
-
     def tearDown(self):
         """
         Remove the unspent transaction output file
@@ -96,7 +95,6 @@ class TestTransactions(unittest.TestCase):
         with self.assertRaises(ValueError):
             tnx = Transaction()
             tnx.add_output('senderaddress', 'receiveraddress', 100)
-
 
     def test_finialize_transaction(self):
         """
@@ -137,7 +135,6 @@ class TestTransactions(unittest.TestCase):
         auth, offender = tnx.verify()
         self.assertFalse(auth)
         self.assertIsNone(offender)
-
 
     def test_receive_network_transaction(self):
         """

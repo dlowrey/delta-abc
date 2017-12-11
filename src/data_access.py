@@ -1,5 +1,6 @@
 import json
 
+
 def get_inputs(amount):
     """
     Get transaction inputs up to a specified amount
@@ -40,6 +41,7 @@ def get_inputs(amount):
         set_balance(available-total)
     return total, inputs
 
+
 def find_output(transaction_id, block_id, output_index):
     """
     Find a refrenced transaction output in the blockchain.
@@ -69,6 +71,7 @@ def find_output(transaction_id, block_id, output_index):
             target_output = None
     return target_output
 
+
 def get_balance():
     """
     Get this node's address from it's info file
@@ -77,10 +80,10 @@ def get_balance():
         info = json.loads(f.read())
     return info['wallet']['balance']
 
+
 def set_balance(new_balance):
     with open('data/node_info.json', 'r+') as f:
         info = json.loads(f.read())
         info['wallet']['balance'] = new_balance
     return info
-
 

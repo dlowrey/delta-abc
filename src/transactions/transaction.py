@@ -4,9 +4,11 @@ from ecdsa import VerifyingKey, NIST256p
 from ecdsa import BadSignatureError
 from src import data_access
 
+
 class Transaction(object):
+
     """ Represents a single Transaction object
-        
+
         A transaction object contains inputs and outputs
         as well as information about itself such as the transaction's id, and
         the block id that it belongs to (if any)
@@ -20,11 +22,11 @@ class Transaction(object):
                 output_count: int
                 outputs: array
             }
-        
+
             Inputs:
-                Inputs verify that the sender owns the currency the system is 
+                Inputs verify that the sender owns the currency the system is
                 about to send. Inputs do this by their structure, they are
-                refrences (by transaction_id, block_id, output_index) 
+                refrences (by transaction_id, block_id, output_index)
                 to a previous transaction output (that will be used in this
                 new transaction) that exists in the blockchain.
 
@@ -55,7 +57,7 @@ class Transaction(object):
                         amount: float
                         spent_transaction_id: string
                     }
-                
+
             Unlock:
                 The unlock portion of a transaction contains the sender's
                 public key and an ECDSA signature created with the sender's
@@ -68,7 +70,7 @@ class Transaction(object):
                         signature: string
                     }
         """
-    
+
     def __init__(self, **kwargs):
         self.transaction_id = kwargs.pop('transaction_id', None)
         self.unlock = {}
@@ -92,13 +94,13 @@ class Transaction(object):
 
         Args:
             sender_address: the sender's address for any refunds
-            receiver_address: a recipient address that will be 
+            receiver_address: a recipient address that will be
                               included in the output object
             amount: the amount of the output object
 
         Returns:
             a list of output objects for this transaction
-        Raises: 
+        Raises:
             A ValueError if insufficient funds were found
         """
         total, inputs = data_access.get_inputs(amount)
@@ -115,20 +117,19 @@ class Transaction(object):
             self.outputs.append({'receiver_address': receiver_address,
                                  'amount': amount})
             self.output_count += 1
-            
+
             if total > amount:
                 # refund the sender any overages
                 self.outputs.append({'receiver_address': sender_address,
                                      'amount': total - amount})
                 self.output_count += 1
-                
+
             return self.outputs
-                
-            
+
     def finalize(self, sender_private_key, sender_public_key):
         """
-        Sign a transaction object using ECDSA 
-        The transaction object is presumed fully complete if it is 
+        Sign a transaction object using ECDSA
+        The transaction object is presumed fully complete if it is
         being signed, no more changes should be made.
 
         Args:
@@ -149,13 +150,13 @@ class Transaction(object):
                 sender_public_key.to_string()
                 ).decode()
         return self.transaction_id
-    
+
     def verify(self):
         """
         Verify the validity of a received transaction.
         Check the signature against the transaction and the provided
         unlocking portion, and check each of the transaction's inputs
-        against the block chain to assure they are being used by the 
+        against the block chain to assure they are being used by the
         rightful owner and have not been spent previously.
 
         Returns:
@@ -213,7 +214,7 @@ class Transaction(object):
     def __compose_message(self):
         """
         Compose a byte string message to sign or verify a transaction.
-        The message is all of the transaciton data, including the 
+        The message is all of the transaciton data, including the
         finalized transaction's ID.
         """
         payload = dict(self)
@@ -234,8 +235,7 @@ class Transaction(object):
         self.transaction_id = sha256(
             bytes(payload, encoding='utf-8')
             ).hexdigest()
-        
-        
+
     def __iter__(self):
         """
         Override the __iter__ function so that
@@ -249,3 +249,4 @@ class Transaction(object):
         yield 'inputs', self.inputs
         yield 'output_count', self.output_count
         yield 'outputs', self.outputs
+
