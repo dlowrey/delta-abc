@@ -1,0 +1,14 @@
+{
+        "previous_block_id": "fakepreviousblockid",
+        "wallet": {
+                "balance": 0,
+                "private_key": "",
+                "public_key": "",
+                "address": ""
+        },
+        "versions": [
+                {"difficulty": 5}
+        ]
+}
+
+
