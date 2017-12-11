@@ -32,14 +32,14 @@ def get_inputs(amount):
                 # write-back unused inputs
                 all_inputs = [i for i in all_inputs if i not in inputs]
                 for t_input in all_inputs:
-                    f.write("{}\n".format(t_input))
-        except FileNotFoundError as e:
-            print(e)
+                    f.write('{}\n'.format(t_input))
+        except FileNotFoundError as err:
+            print(err)
 
         # update balance
         set_balance(available-total)
     return total, inputs
-                
+
 def find_output(transaction_id, block_id, output_index):
     """
     Find a refrenced transaction output in the blockchain.
@@ -48,12 +48,12 @@ def find_output(transaction_id, block_id, output_index):
         trasnsaction_id: the transaction id of the refrenced transaction output
         block_id: the block_id that the transaction is in
         output_index: the index of the refrenced output in the transaction
-    
+
     Returns:
         The transaction output object if any was found, otherwise None
 
     """
-    with open("data/blockchain/block{}.json".format(block_id), 'r+') as f:
+    with open('data/blockchain/block{}.json'.format(block_id), 'r+') as f:
         block = json.loads(f.read())
         try:
             block_data = block['data']
@@ -65,7 +65,7 @@ def find_output(transaction_id, block_id, output_index):
             # update block file
             f.truncate(0)
             f.write(json.dumps(block))
-        except (KeyError, IndexError) as e:
+        except (KeyError, IndexError) as err:
             target_output = None
     return target_output
 
@@ -73,7 +73,7 @@ def get_balance():
     """
     Get this node's address from it's info file
     """
-    with open("data/node_info.json", 'r') as f:
+    with open('data/node_info.json', 'r') as f:
         info = json.loads(f.read())
     return info['wallet']['balance']
 

@@ -1,7 +1,7 @@
-from ecdsa import VerifyingKey, NIST256p
-from ecdsa import BadSignatureError
 from base64 import b64encode, b64decode
 from hashlib import sha256
+from ecdsa import VerifyingKey, NIST256p
+from ecdsa import BadSignatureError
 from src import data_access
 
 class Transaction(object):
@@ -71,7 +71,6 @@ class Transaction(object):
     
     def __init__(self, **kwargs):
         self.transaction_id = kwargs.pop('transaction_id', None)
-
         self.unlock = {}
         self.inputs = []
         self.input_count = 0
@@ -106,7 +105,7 @@ class Transaction(object):
 
         # if not enough to make output
         if not total:
-            raise ValueError("Insufficient Funds")
+            raise ValueError('Insufficient Funds')
         else:
             # add the inputs
             self.inputs += inputs
@@ -120,8 +119,8 @@ class Transaction(object):
             if total > amount:
                 # refund the sender any overages
                 self.outputs.append({'receiver_address': sender_address,
-                                    'amount': total - amount})
-                self.output_count +=1
+                                     'amount': total - amount})
+                self.output_count += 1
                 
             return self.outputs
                 
@@ -147,8 +146,8 @@ class Transaction(object):
             # store in unlocking portion of transaction
             self.unlock['signature'] = b64encode(signature).decode()
             self.unlock['sender_public_key'] = b64encode(
-                                                sender_public_key.to_string()
-                                                        ).decode()
+                sender_public_key.to_string()
+                ).decode()
         return self.transaction_id
     
     def verify(self):
@@ -189,9 +188,9 @@ class Transaction(object):
             for t_input in self.inputs:
                 # find the refrenced output used as an input
                 refrenced_output = data_access.find_output(
-                                             t_input['transaction_id'],
-                                             t_input['block_id'],
-                                             t_input['output_index'])
+                    t_input['transaction_id'],
+                    t_input['block_id'],
+                    t_input['output_index'])
 
                 # make sure the refrenced output exists
                 if not refrenced_output:
@@ -232,9 +231,10 @@ class Transaction(object):
     def __set_transaction_id(self):
         """ Set the transaction id before finalizing the transaction """
         payload = str(dict(self))
-        self.transaction_id  = sha256(bytes(payload, encoding='utf-8')).hexdigest()
+        self.transaction_id = sha256(
+            bytes(payload, encoding='utf-8')
+            ).hexdigest()
         
-    
         
     def __iter__(self):
         """
