@@ -1,3 +1,8 @@
+"""
+Test the main features of the Transaction class,
+including creating, adding outputs, finalizing (signing),
+verifying, recieving from network.
+"""
 from base64 import b64encode
 from time import time
 from datetime import datetime

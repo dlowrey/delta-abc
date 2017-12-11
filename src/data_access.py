@@ -1,3 +1,8 @@
+"""
+Functions that allow acess to persisted data such as
+the block chain files and other info stored in the /data/
+directory
+"""
 import json
 
 

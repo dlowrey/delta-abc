@@ -1,3 +1,9 @@
+"""
+Class for handling the creation of Transaction objects from
+scratch (by adding outputs) or from a network received json
+transaction (passed in as a dict). Hanldes the signing and
+verifying
+"""
 from base64 import b64encode, b64decode
 from hashlib import sha256
 from ecdsa import VerifyingKey, NIST256p
