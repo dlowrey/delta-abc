@@ -1,7 +1,8 @@
 from ecdsa import VerifyingKey, NIST256p
 from ecdsa import BadSignatureError
+from base64 import b64encode, b64decode
 from hashlib import sha256
-from src.transactions import data
+from src import data_access
 
 class Transaction(object):
     """ Represents a single Transaction object
@@ -82,7 +83,7 @@ class Transaction(object):
             self.unlock = kwargs.pop('unlock')
             self.inputs = kwargs.pop('inputs')
             self.input_count = kwargs.pop('input_count')
-            self.outputs = kwargs.pop('outpus')
+            self.outputs = kwargs.pop('outputs')
             self.output_count = kwargs.pop('output_count')
 
     def add_output(self, sender_address, receiver_address, amount):
@@ -101,12 +102,13 @@ class Transaction(object):
         Raises: 
             A ValueError if insufficient funds were found
         """
-        total, inputs = data.get_inputs(amount)
+        total, inputs = data_access.get_inputs(amount)
 
         # if not enough to make output
-        if total < 0:
+        if not total:
             raise ValueError("Insufficient Funds")
         else:
+            # add the inputs
             self.inputs += inputs
             self.input_count += len(inputs)
 
@@ -143,8 +145,10 @@ class Transaction(object):
             message = self.__compose_message()
             signature = signing_key.sign(message, hashfunc=sha256)
             # store in unlocking portion of transaction
-            self.unlock['signature'] = signature
-            self.unlock['sender_public_key'] = sender_public_key
+            self.unlock['signature'] = b64encode(signature).decode()
+            self.unlock['sender_public_key'] = b64encode(
+                                                sender_public_key.to_string()
+                                                        ).decode()
         return self.transaction_id
     
     def verify(self):
@@ -156,22 +160,23 @@ class Transaction(object):
         rightful owner and have not been spent previously.
 
         Returns:
-            boolean, dict (authentic, offender) in the combiniations:
-                True, None if the transaction was valid
-                False, None if the signature was invalid
-                False, {...} if a transaction input was invalid
-            where dict is the offending input if any
+            boolean (true if valid), dict (the invalid transaction input)
         """
         authentic = True
         offender = None
 
-        sender_public_key = self.unlock['sender_public_key']
-        signature = self.unlock['signature']
+        # get sender address (public key string)
+        sender_address = self.unlock['sender_public_key']
+        # get byte string representation of public key
+        sender_byte_address = b64decode(sender_address.encode())
+        # create verifying key from sender's public key
+        verify_key = VerifyingKey.from_string(sender_byte_address,
+                                              curve=NIST256p)
+        # get string signature and convert it back to ecdsa signature
+        signature = b64decode(self.unlock['signature'].encode())
+        # compose the message for ourselves (prevent tampering)
         message = self.__compose_message()
 
-        # create verifying key from sender's public key
-        verifiy_key = VerifyingKey.from_string(sender_public_key,
-                                               curve=NIST256p)
         try:
             verify_key.verify(signature, message, hashfunc=sha256)
         except BadSignatureError:
@@ -183,11 +188,18 @@ class Transaction(object):
         if authentic:
             for t_input in self.inputs:
                 # find the refrenced output used as an input
-                refrenced_output = data.find_output(t_input['transaction_id'],
+                refrenced_output = data_access.find_output(
+                                             t_input['transaction_id'],
                                              t_input['block_id'],
                                              t_input['output_index'])
+
+                # make sure the refrenced output exists
+                if not refrenced_output:
+                    authentic = False
+                    offender = t_input
+                    break
                 # make sure refrenced output is addressed transaction's sender
-                if refrenced_output['address'] != sender_public_key:
+                elif refrenced_output['receiver_address'] != sender_address:
                     authentic = False
                     offender = t_input
                     break
@@ -206,6 +218,8 @@ class Transaction(object):
         finalized transaction's ID.
         """
         payload = dict(self)
+        # leave unlock portion out of message
+        payload['unlock'] = {}
         if not self.transaction_id:
             self.__set_transaction_id()
         payload['transaction_id'] = self.transaction_id
@@ -228,6 +242,8 @@ class Transaction(object):
         we can call dict(Transaction) and get a dict object
         back that represents the Transaction object passed.
         """
+
+        yield 'transaction_id', self.transaction_id
         yield 'unlock', self.unlock
         yield 'input_count', self.input_count
         yield 'inputs', self.inputs
