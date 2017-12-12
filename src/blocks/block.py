@@ -6,7 +6,6 @@ verification of blocks.
 """
 from hashlib import sha256
 from datetime import datetime
-from collections import OrderedDict
 from time import time
 from src import data_access
 
@@ -97,7 +96,7 @@ class Block(object):
     def __compose_hash(self, nonce):
         """
         Create a new hash based on the block data and a random number.
-        This hash is checked against a target difficulty to see if the 
+        This hash is checked against a target difficulty to see if the
         block has been successfully mined.
 
         Returns:
@@ -115,13 +114,13 @@ class Block(object):
         """
         payload = self.__get_mining_data()
         self.block_id = sha256(bytes(payload, encoding='utf-8')).hexdigest()
-    
+
     def __set_order_data(self):
         """
         Order the block data to prepare for hashing.
         Block data (transactions) stored in python dicts do not maintain
         any order, and thus will produce different hash values at random.
-        
+
         Returns:
             a list of tuples representing the ordered data
         """
@@ -135,21 +134,21 @@ class Block(object):
                 # put in new dict of ordered transactions
                 data[t_id] = t
             # sort the ordred transactions
-            self.ordered_data = sorted(data.items(), key=lambda k: k[0])   
+            self.ordered_data = sorted(data.items(), key=lambda k: k[0])
         return self.ordered_data
 
     def __get_mining_data(self):
         """
-        Get a string representation of the block data needed for the 
+        Get a string representation of the block data needed for the
         mining process.
-        Only include data that is present before mining. 
+        Only include data that is present before mining.
 
         Returns:
             a string of the data to be included in mining process
         """
         return "{0}{1}{2}".format(
                 self.previous_block_id,
-                self.ordered_data,  
+                self.ordered_data,
                 self.version
                 )
 
@@ -166,6 +165,3 @@ class Block(object):
         yield 'version', self.version
         yield 'mining_proof', self.mining_proof
 
-
-        
-        
