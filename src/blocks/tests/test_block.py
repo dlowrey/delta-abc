@@ -7,6 +7,7 @@ from datetime import datetime
 from time import time
 from collections import OrderedDict
 import unittest
+import os
 import json
 from src.blocks.block import Block
 
@@ -23,14 +24,18 @@ class TestBlocks(unittest.TestCase):
                 'output_count': 0,  # don't care
                 'outputs': [],  # don't care
                 }
+                
         # mock a block object
-        timestamp = datetime.fromtimestamp(time()).strftime('%Y-%m-%d %H:%M:%S')
+        block_id = '46e3c57efe9a1af7ba27c024cb22dcc88c214b74890cbc5cbf24a938c3395ae3'
         self.block = {
-                'block_id': 'fakeblockid',
-                'previous_block_id': 'fakepreviousblockid',
-                'timestampe': timestamp,
-                'data' : {'faketransactionid': self.tnx}
+                'block_id': block_id,
+                'previous_block_id': '',
+                'timestamp': '',
+                'data' : {'faketransactionid': self.tnx},
+                'version': 0,
+                'mining_proof':813348,
                 }
+
         # save the config file
         with open('data/node_info.json', 'r') as f:
             self.config_save = f.read()
@@ -52,22 +57,13 @@ class TestBlocks(unittest.TestCase):
         block.add_transaction(self.tnx)
         actual = block.mine()
         actual['timestamp'] = ''
-        expected = {
-                "previous_block_id": "",
-                "data": {
-                    "faketransactionid": {
-                        "input_count": 0,
-                        "output_count": 0,
-                        "transaction_id": "faketransactionid",
-                        "outputs": [],
-                        "unlock": {},
-                        "inputs": []
-                        }
-                    },
-                "version": 0,
-                "mining_proof": 813349,
-                "timestamp": "",
-                "block_id": "46e3c57efe9a1af7ba27c024cb22dcc88c214b74890cbc5cbf24a938c3395ae3"
-                }
+        expected = self.block
         self.maxDiff = None
         self.assertDictEqual(actual, expected)
+
+    def test_verify_block(self):
+        block = Block(**self.block)
+        auth = block.verify()
+        self.assertTrue(auth)
+        
+

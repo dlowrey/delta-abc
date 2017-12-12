@@ -53,8 +53,9 @@ class Block(object):
             # Continuously hash and change nonce until the difficulty goal
             # is satisified (Proof of work)
             while not target_hash.startswith(goal):
-                target_hash = self.__compose_hash(nonce)
                 nonce += 1
+                target_hash = self.__compose_hash(nonce)
+
             # Fill out the remining values to complete the block
             self.__set_block_id()
             self.mining_proof = nonce
@@ -75,8 +76,12 @@ class Block(object):
         Returns:
             Boolean (True if authentic)
         """
+        # Python dicts are unordered, and to be consistent with
+        # our hash values for this block we need order, so we sort
+        # the dict data by key, and get a list of tuples
+        self.__set_order_data()
         goal = ''.zfill(self.difficulty)
-        target_hash = sha256(self.__compose_hash(self.mining_proof))
+        target_hash = self.__compose_hash(self.mining_proof)
         # Check to see if the block's nonce satisfies the target difficulty
         authentic = target_hash.startswith(goal)
         if authentic:
