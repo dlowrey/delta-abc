@@ -4,7 +4,7 @@ the block chain files and other info stored in the /data/
 directory
 """
 import json
-import os
+
 
 def get_inputs(amount):
     """
@@ -83,15 +83,18 @@ def find_output(transaction_id, block_id, output_index):
             target_output = None
     return target_output
 
+
 def get_mining_difficulty(version):
     with open('data/node_info.json') as f:
         info = json.loads(f.read())
     return info['versions'][version]['difficulty']
 
+
 def get_previous_block_id():
     with open('data/node_info.json', 'r') as f:
         info = json.loads(f.read())
     return info['previous_block_id']
+
 
 def set_previous_block_id(new_id):
     with open('data/node_info.json', 'r+') as f:
@@ -100,6 +103,7 @@ def set_previous_block_id(new_id):
         f.truncate(0)
         f.write(json.dumps(info))
     return info
+
 
 def get_balance():
     """
