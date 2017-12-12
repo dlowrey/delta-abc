@@ -43,6 +43,10 @@ class Block(object):
             Python dict representation of the newly mined block
         """
         if not self.mining_proof:  # do not mine an already mined block
+            # Python dicts are unordered, and to be consistent with
+            # our hash values for this block we need order, so we sort
+            # the dict data by key, and get a list of tuples
+            self.__set_order_data()
             nonce = 0
             target_hash = ''
             goal = ''.zfill(self.difficulty)
@@ -107,7 +111,7 @@ class Block(object):
         payload = self.__get_mining_data()
         self.block_id = sha256(bytes(payload, encoding='utf-8')).hexdigest()
     
-    def __order_data(self):
+    def __set_order_data(self):
         """
         Order the block data to prepare for hashing.
         Block data (transactions) stored in python dicts do not maintain
@@ -133,13 +137,9 @@ class Block(object):
         Returns:
             a string of the data to be included in mining process
         """
-        # Python dicts are unordered, and to be consistent with
-        # our hash values for this block we need order, so we sort
-        # the dict data by key, and get a list of tuples
-        ordered_data = self.__order_data()
         return "{0}{1}{2}".format(
                 self.previous_block_id,
-                ordered_data,  
+                self.ordered_data,  
                 self.version
                 )
 
