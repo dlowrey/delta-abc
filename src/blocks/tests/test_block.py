@@ -32,9 +32,10 @@ class TestBlocks(unittest.TestCase):
 
         # mock a block object
         # block_id is unique to this exact block
+        
         block_id = (
-                '089dbeed53f802941d8d25371248fc1'
-                '5c193dd4eb626587b6790817421e44cf8'
+                '089dbeed53f802941d8d25371248fc15'
+                'c193dd4eb626587b6790817421e44cf8'
                 )
         
         self.block = {

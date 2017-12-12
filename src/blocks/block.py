@@ -18,6 +18,37 @@ class Block(object):
         A new Block object can be created by passing in a dict of values
         from a pre-existing block, or by building one from the ground
         up by not providing any parameters.
+
+        Format (returned when casting Block to a dict())
+            {
+                block_id: string,
+                previous_block_id: string,
+                timestamp: string,
+                data: dict,
+                version: string,
+                mining_proof: int
+            }
+
+            block_id:
+                a sha256 hash of the non-changing block data
+                such as the previous_block_id, data (in ordered format),
+                and version number.
+
+            previous_block_id:
+                the block_id of the block on the blockchain preceding this
+                block
+
+            data:
+                a dict of transactions in the form {transaction_id: {...},}
+
+            version:
+                the version of the system when this block was mined
+                contains information like difficulty
+
+            mining_proof:
+                a random integer that will result in the target difficulty for
+                the version being met
+
         """
         self.block_id = kwargs.pop('block_id', None)
         self.previous_block_id = kwargs.pop(
@@ -58,10 +89,10 @@ class Block(object):
                 target_hash = self.__compose_hash(nonce)
 
             # Now complete the block by filling out the remaining fields
-            self.__set_block_id()
             self.mining_proof = nonce
             self.timestamp = datetime.fromtimestamp(time()).strftime(
                     '%Y-%m-%d %H:%M:%S')
+            self.__set_block_id()
         return dict(self)
 
     def verify(self):
@@ -81,13 +112,12 @@ class Block(object):
         goal = ''.zfill(self.difficulty)
         target_hash = self.__compose_hash(self.mining_proof)
         # Check to see if the block's nonce satisfies the target difficulty
-        authentic = target_hash.startswith(goal)
-        return authentic
+        return target_hash.startswith(goal)
 
     def add_transaction(self, tnx):
         """
         Add a transaction object to this block.
-        
+
         Returns:
             the newly added transaction object (dict)
         """
@@ -106,7 +136,7 @@ class Block(object):
         """
 
         payload = self.__get_mining_data()
-        payload += str(nonce)  # add random number in 
+        payload += str(nonce)  # add random number in
         block_hash = sha256(bytes(payload, encoding='utf-8')).hexdigest()
         return block_hash
 
