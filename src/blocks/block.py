@@ -128,8 +128,13 @@ class Block(object):
         if not self.ordered_data:
             data = {}
             for t_id, t in self.data.items():
+                # sort nested transaction dicts
+                t['unlock'] = sorted(t['unlock'].items(), key=lambda k: k[0])
+                # sort the transaction object
                 t = sorted(t.items(), key=lambda k: k[0])
+                # put in new dict of ordered transactions
                 data[t_id] = t
+            # sort the ordred transactions
             self.ordered_data = sorted(data.items(), key=lambda k: k[0])   
         return self.ordered_data
 
