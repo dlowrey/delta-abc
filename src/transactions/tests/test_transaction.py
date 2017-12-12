@@ -59,19 +59,19 @@ class TestTransactions(unittest.TestCase):
         # give a balance of 25 for testing
         with open('data/node_info.json', 'r+') as f:
             self.saved_info = f.read()
+            info = json.loads(self.saved_info)
             f.truncate(0)
             f.seek(0)
-            info = json.loads(self.saved_info)
             info['wallet']['balance'] = 25
             json.dump(info, f)
 
         # write the unspent output to it's file
-        with open('data/unspent_outputs.json', 'w') as utxo:
-            utxo.write('{}\n'.format(json.dumps(self.unspent_output)))
+        with open('data/unspent_outputs.json', 'w') as f:
+            f.write('{}\n'.format(json.dumps(self.unspent_output)))
 
         # write the block to its file
-        with open('data/blockchain/blocktestblock.json', 'w') as block:
-            block.write(json.dumps(self.block))
+        with open('data/blockchain/blocktestblock.json', 'w') as f:
+            json.dump(self.block, f)
 
     def tearDown(self):
         """

@@ -40,6 +40,7 @@ def get_inputs(amount):
                 # Erase the contents of the file and re-write the
                 # unspent transaction outputs that were not used
                 f.truncate(0)
+                f.seek(0)
                 all_inputs = [i for i in all_inputs if i not in inputs]
                 for t_input in all_inputs:
                     f.write('{}\n'.format(t_input))
@@ -68,7 +69,7 @@ def find_output(transaction_id, block_id, output_index):
     # Read the specified block's file and check for a transaction
     # output that matches the parameters
     with open('data/blockchain/block{}.json'.format(block_id), 'r+') as f:
-        block = json.loads(f.read())
+        block = json.load(f)
         try:
             block_data = block['data']
             target_tnx = block_data[transaction_id]
@@ -78,7 +79,8 @@ def find_output(transaction_id, block_id, output_index):
             # is now spent
             target_output['spent'] = True
             f.truncate(0)
-            f.write(json.dumps(block))
+            f.seek(0)
+            json.dump(block, f)
         except (KeyError, IndexError) as err:
             target_output = None
     return target_output
@@ -92,7 +94,7 @@ def get_mining_difficulty(version):
         the version's difficulty as an int
     """
     with open('data/node_info.json') as f:
-        info = json.loads(f.read())
+        info = json.load(f)
     return info['versions'][version]['difficulty']
 
 
@@ -104,7 +106,7 @@ def get_previous_block_id():
         block id as a string
     """
     with open('data/node_info.json', 'r') as f:
-        info = json.loads(f.read())
+        info = json.load(f)
     return info['previous_block_id']
 
 
@@ -117,10 +119,11 @@ def set_previous_block_id(new_id):
         the info dict
     """
     with open('data/node_info.json', 'r+') as f:
-        info = json.loads(f.read())
+        info = json.load(f)
         info['previous_block_id'] = new_id
         f.truncate(0)
-        f.write(json.dumps(info))
+        f.seek(0)
+        json.dump(info, f)
     return info
 
 
@@ -133,7 +136,7 @@ def get_balance():
         node has addressed to it in the blockchain.
     """
     with open('data/node_info.json', 'r') as f:
-        info = json.loads(f.read())
+        info = json.load(f)
     return info['wallet']['balance']
 
 
@@ -145,10 +148,11 @@ def set_balance(new_balance):
         the info (dict) corresponding to this node
     """
     with open('data/node_info.json', 'r+') as f:
-        info = json.loads(f.read())
+        info = json.load(f)
         info['wallet']['balance'] = new_balance
         f.truncate(0)
-        f.write(json.dumps(info))
+        f.seek(0)
+        json.dump(info, f)
     return info
 
 
