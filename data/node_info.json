@@ -6,7 +6,8 @@
                 "public_key": "",
                 "address": ""
         },
-        "versions": [
-                {"difficulty": 5}
-        ]
+	"current_version" : "1.0",
+        "versions": {
+                "1.0": {"difficulty": 5}
+        }
 }

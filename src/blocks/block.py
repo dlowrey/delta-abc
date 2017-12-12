@@ -20,15 +20,16 @@ class Block(object):
         up by not providing any parameters.
         """
         self.block_id = kwargs.pop('block_id', None)
-        self.previous_block_id = kwargs.pop('previous_block_id', None)
+        self.previous_block_id = kwargs.pop(
+                'previous_block_id',
+                data_access.get_previous_block_id())
         self.timestamp = kwargs.pop('timestamp', None)
         self.data = kwargs.pop('data', dict())
-        self.ordered_data = None
-        self.version = kwargs.pop('version', 0)
+        self.version = kwargs.pop('version', data_access.get_current_version())
         self.mining_proof = kwargs.pop('mining_proof', None)
         self.difficulty = data_access.get_mining_difficulty(self.version)
-        if not self.previous_block_id:
-            self.previous_block_id = data_access.get_previous_block_id()
+        # Ordered data is assigned right before verifying/mining a block
+        self.ordered_data = None
 
     def mine(self):
         """
@@ -49,27 +50,25 @@ class Block(object):
             nonce = 0
             target_hash = ''
             goal = ''.zfill(self.difficulty)
+
             # Continuously hash and change nonce until the difficulty goal
             # is satisified (Proof of work)
             while not target_hash.startswith(goal):
                 nonce += 1
                 target_hash = self.__compose_hash(nonce)
 
-            # Fill out the remining values to complete the block
+            # Now complete the block by filling out the remaining fields
             self.__set_block_id()
             self.mining_proof = nonce
             self.timestamp = datetime.fromtimestamp(time()).strftime(
                     '%Y-%m-%d %H:%M:%S')
-            # Newly mined block added to the blockchain, update this node's
-            # latest block id
-            data_access.set_previous_block_id(self.block_id)
         return dict(self)
 
     def verify(self):
         """
         Verify the authenticity of a new block.
         Verify the block by checking to see if the proof of work has
-        been accomplished. Check the mining proof against a target
+        been accomplished. Check the mining_proof against a target
         difficulty
 
         Returns:
@@ -83,9 +82,6 @@ class Block(object):
         target_hash = self.__compose_hash(self.mining_proof)
         # Check to see if the block's nonce satisfies the target difficulty
         authentic = target_hash.startswith(goal)
-        if authentic:
-            data_access.set_previous_block_id(self.block_id)
-
         return authentic
 
     def add_transaction(self, tnx):

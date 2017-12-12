@@ -85,18 +85,37 @@ def find_output(transaction_id, block_id, output_index):
 
 
 def get_mining_difficulty(version):
+    """
+    Get the version's mining difficulty from the info file
+    
+    Returns:
+        the version's difficulty as an int
+    """
     with open('data/node_info.json') as f:
         info = json.loads(f.read())
     return info['versions'][version]['difficulty']
 
 
 def get_previous_block_id():
+    """
+    Get the last block's id on the block chain
+
+    Returns:
+        block id as a string
+    """
     with open('data/node_info.json', 'r') as f:
         info = json.loads(f.read())
     return info['previous_block_id']
 
 
 def set_previous_block_id(new_id):
+    """
+    Set the previous_block_id in the info file.
+    This is the ID of the latest block on the blockchain.
+
+    Returns:
+        the info dict
+    """
     with open('data/node_info.json', 'r+') as f:
         info = json.loads(f.read())
         info['previous_block_id'] = new_id
@@ -132,3 +151,15 @@ def set_balance(new_balance):
         f.write(json.dumps(info))
     return info
 
+
+def get_current_version():
+    """
+    Get the version that the network is
+    currently running on.
+    
+    Returns:
+        the current version number
+    """
+    with open('data/node_info.json', 'r') as f:
+        info = json.loads(f.read())
+    return info['current_version']

@@ -33,16 +33,17 @@ class TestBlocks(unittest.TestCase):
         # mock a block object
         # block_id is unique to this exact block
         block_id = (
-                '9dccd2b72bf3e49b12bca7d6d5cbc14'
-                '4be5fea17a230f4fefe342639e71a3608'
+                '089dbeed53f802941d8d25371248fc1'
+                '5c193dd4eb626587b6790817421e44cf8'
                 )
+        
         self.block = {
                 'block_id': block_id,
                 'previous_block_id': '',
                 'timestamp': '',
                 'data': {'faketransactionid': self.tnx},
-                'version': 0,
-                'mining_proof': 944944,  # unique to this exact block
+                'version': '1.0',
+                'mining_proof': 888108,  # unique to this exact block
                 }
 
         # save the config file
