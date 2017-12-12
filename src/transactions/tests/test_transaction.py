@@ -56,12 +56,14 @@ class TestTransactions(unittest.TestCase):
             'data': {'faketransactionid': self.tnx}
             }
 
-        # mock a simple configuration file with only balance data
-        self.info = {'wallet': {'balance': 25}}
-
-        # write the info file
-        with open('data/node_info.json', 'w') as info:
-            info.write(json.dumps(self.info))
+        # give a balance of 25 for testing
+        with open('data/node_info.json', 'r+') as f:
+            self.saved_info = f.read()
+            f.truncate(0)
+            f.seek(0)
+            info = json.loads(self.saved_info)
+            info['wallet']['balance'] = 25
+            json.dump(info, f)
 
         # write the unspent output to it's file
         with open('data/unspent_outputs.json', 'w') as utxo:
@@ -79,7 +81,9 @@ class TestTransactions(unittest.TestCase):
         # remove any data we used
         os.remove('data/unspent_outputs.json')
         os.remove('data/blockchain/blocktestblock.json')
-        os.remove('data/node_info.json')
+        # set info back to original
+        with open('data/node_info.json', 'w') as f:
+            f.write(self.saved_info)
 
     def test_add_transaction_output(self):
         """
