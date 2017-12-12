@@ -7,7 +7,7 @@ verification of blocks.
 from hashlib import sha256
 from datetime import datetime
 from time import time
-from src import data_access
+from src.persistence import access
 
 
 class Block(object):
@@ -53,12 +53,12 @@ class Block(object):
         self.block_id = kwargs.pop('block_id', None)
         self.previous_block_id = kwargs.pop(
                 'previous_block_id',
-                data_access.get_previous_block_id())
+                 access.get_previous_block_id())
         self.timestamp = kwargs.pop('timestamp', None)
         self.data = kwargs.pop('data', dict())
-        self.version = kwargs.pop('version', data_access.get_current_version())
+        self.version = kwargs.pop('version', access.get_current_version())
         self.mining_proof = kwargs.pop('mining_proof', None)
-        self.difficulty = data_access.get_mining_difficulty(self.version)
+        self.difficulty = access.get_mining_difficulty(self.version)
         # Ordered data is assigned right before verifying/mining a block
         self.ordered_data = None
 

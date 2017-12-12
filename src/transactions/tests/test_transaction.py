@@ -66,7 +66,7 @@ class TestTransactions(unittest.TestCase):
             json.dump(info, f)
 
         # write the unspent output to it's file
-        with open('data/unspent_outputs.json', 'w') as f:
+        with open('data/unspent_outputs.txt', 'w') as f:
             f.write('{}\n'.format(json.dumps(self.unspent_output)))
 
         # write the block to its file
@@ -79,7 +79,7 @@ class TestTransactions(unittest.TestCase):
         used.
         """
         # remove any data we used
-        os.remove('data/unspent_outputs.json')
+        os.remove('data/unspent_outputs.txt')
         os.remove('data/blockchain/blocktestblock.json')
         # set info back to original
         with open('data/info.json', 'w') as f:
