@@ -90,7 +90,7 @@ def find_output(transaction_id, block_id, output_index):
 def get_mining_difficulty(version):
     """
     Get the version's mining difficulty from the info file
-    
+
     Returns:
         the version's difficulty as an int
     """
@@ -136,7 +136,7 @@ def get_balance():
         A float representing how much cryptocurrency this
         node has addressed to it in the blockchain.
     """
-    with open(file.INFO_FILE, 'r') as f:
+    with open(files.INFO_FILE, 'r') as f:
         info = json.load(f)
     return info['wallet']['balance']
 
@@ -161,7 +161,7 @@ def get_current_version():
     """
     Get the version that the network is
     currently running on.
-    
+
     Returns:
         the current version number
     """

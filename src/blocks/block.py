@@ -53,7 +53,7 @@ class Block(object):
         self.block_id = kwargs.pop('block_id', None)
         self.previous_block_id = kwargs.pop(
                 'previous_block_id',
-                 access.get_previous_block_id())
+                access.get_previous_block_id())
         self.timestamp = kwargs.pop('timestamp', None)
         self.data = kwargs.pop('data', dict())
         self.version = kwargs.pop('version', access.get_current_version())

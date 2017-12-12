@@ -8,11 +8,12 @@ import os
 
 # Global file paths for easier maintenance
 # Directories
-DATA_DIR = 'data'
-BLOCKHAIN_DIR = '{}/{}'.format(DATA_DIR, 'blockchain')
+DATA_DIR = 'data/'
+BLOCKCHAIN_DIR = '{}{}'.format(DATA_DIR, 'blockchain/')
 # Files
-INFO_FILE = '{}/{}'.format(DATA_DIR, 'info.json')
-UNSPENT_OUTPUTS = '{}/{}'.format(DATA_DIR, 'unspent_outputs.txt')
+INFO_FILE = '{}{}'.format(DATA_DIR, 'info.json')
+UNSPENT_OUTPUTS = '{}{}'.format(DATA_DIR, 'unspent_outputs.txt')
+
 
 def create_data_dir():
     """ Create the data directory """
@@ -39,8 +40,7 @@ def create_info_file():
 
 def create_blockchain_dir():
     os.mkdir(BLOCKCHAIN_DIR)
-            
+
 
 def create_unspent_outputs_file():
-    with open(UNSPENT_OUTPUTS, 'w') as f:
-        pass
+    open(UNSPENT_OUTPUTS, 'w').close()
