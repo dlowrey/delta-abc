@@ -1,0 +1,13 @@
+{
+        "previous_block_id": "",
+        "wallet": {
+                "balance": 0,
+                "private_key": "",
+                "public_key": "",
+                "address": ""
+        },
+	"current_version" : "1.0",
+        "versions": {
+                "1.0": {"difficulty": 5}
+        }
+}
