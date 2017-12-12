@@ -46,19 +46,6 @@ class TestBlocks(unittest.TestCase):
                 'mining_proof': 888108,  # unique to this exact block
                 }
 
-        # save the config file
-        with open('data/node_info.json', 'r') as f:
-            self.config_save = f.read()
-
-    def tearDown(self):
-        """
-        Undo anything done in the set up that could
-        stick around
-        """
-        # reset the config file
-        with open('data/node_info.json', 'w') as f:
-            f.write(self.config_save)
-
     def test_create_block(self):
         """
         Test creating a new block and adding a single
