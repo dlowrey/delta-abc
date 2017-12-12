@@ -85,6 +85,12 @@ class Block(object):
         return authentic
 
     def add_transaction(self, tnx):
+        """
+        Add a transaction object to this block.
+        
+        Returns:
+            the newly added transaction object (dict)
+        """
         transaction_id = tnx['transaction_id']
         self.data[transaction_id] = tnx
         return {transaction_id: self.data[transaction_id]}
@@ -100,7 +106,7 @@ class Block(object):
         """
 
         payload = self.__get_mining_data()
-        payload += str(nonce)
+        payload += str(nonce)  # add random number in 
         block_hash = sha256(bytes(payload, encoding='utf-8')).hexdigest()
         return block_hash
 
@@ -144,7 +150,7 @@ class Block(object):
         """
         return "{0}{1}{2}".format(
                 self.previous_block_id,
-                self.ordered_data,
+                self.ordered_data,  # data must be in consistent order
                 self.version
                 )
 
@@ -153,6 +159,9 @@ class Block(object):
         Override the __iter__ function so that
         we can call dict(Block) and get a dict object
         back that represents the Block object passed
+
+        Yields:
+            Each field of a Block object
         """
         yield 'block_id', self.block_id
         yield 'previous_block_id', self.previous_block_id
