@@ -57,7 +57,7 @@ class TestTransactions(unittest.TestCase):
             }
 
         # give a balance of 25 for testing
-        with open('data/node_info.json', 'r+') as f:
+        with open('data/info.json', 'r+') as f:
             self.saved_info = f.read()
             info = json.loads(self.saved_info)
             f.truncate(0)
@@ -82,7 +82,7 @@ class TestTransactions(unittest.TestCase):
         os.remove('data/unspent_outputs.json')
         os.remove('data/blockchain/blocktestblock.json')
         # set info back to original
-        with open('data/node_info.json', 'w') as f:
+        with open('data/info.json', 'w') as f:
             f.write(self.saved_info)
 
     def test_add_transaction_output(self):

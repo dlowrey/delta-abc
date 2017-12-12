@@ -93,7 +93,7 @@ def get_mining_difficulty(version):
     Returns:
         the version's difficulty as an int
     """
-    with open('data/node_info.json') as f:
+    with open('data/info.json') as f:
         info = json.load(f)
     return info['versions'][version]['difficulty']
 
@@ -105,7 +105,7 @@ def get_previous_block_id():
     Returns:
         block id as a string
     """
-    with open('data/node_info.json', 'r') as f:
+    with open('data/info.json', 'r') as f:
         info = json.load(f)
     return info['previous_block_id']
 
@@ -118,7 +118,7 @@ def set_previous_block_id(new_id):
     Returns:
         the info dict
     """
-    with open('data/node_info.json', 'r+') as f:
+    with open('data/info.json', 'r+') as f:
         info = json.load(f)
         info['previous_block_id'] = new_id
         f.truncate(0)
@@ -135,7 +135,7 @@ def get_balance():
         A float representing how much cryptocurrency this
         node has addressed to it in the blockchain.
     """
-    with open('data/node_info.json', 'r') as f:
+    with open('data/info.json', 'r') as f:
         info = json.load(f)
     return info['wallet']['balance']
 
@@ -147,7 +147,7 @@ def set_balance(new_balance):
     Returns:
         the info (dict) corresponding to this node
     """
-    with open('data/node_info.json', 'r+') as f:
+    with open('data/info.json', 'r+') as f:
         info = json.load(f)
         info['wallet']['balance'] = new_balance
         f.truncate(0)
@@ -164,6 +164,6 @@ def get_current_version():
     Returns:
         the current version number
     """
-    with open('data/node_info.json', 'r') as f:
+    with open('data/info.json', 'r') as f:
         info = json.loads(f.read())
     return info['current_version']
