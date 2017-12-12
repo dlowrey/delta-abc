@@ -274,14 +274,11 @@ class Transaction(object):
 
     def __iter__(self):
         """
-        Override the __iter__ function so that
-        we can call dict(Transaction) and get a dict object
-        back that represents the Transaction object passed.
         """
-        yield 'transaction_id', self.transaction_id
-        yield 'unlock', self.unlock
-        yield 'input_count', self.input_count
-        yield 'inputs', self.inputs
-        yield 'output_count', self.output_count
-        yield 'outputs', self.outputs
 
+        yield 'transaction_id', self.transaction_id,
+        yield 'unlock', self.unlock,
+        yield 'input_count', self.input_count,
+        yield 'inputs', self.inputs,
+        yield 'output_count', self.output_count,
+        yield 'outputs', self.outputs

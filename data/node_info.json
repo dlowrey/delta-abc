@@ -1,5 +1,5 @@
 {
-        "previous_block_id": "fakepreviousblockid",
+        "previous_block_id": "",
         "wallet": {
                 "balance": 0,
                 "private_key": "",
@@ -10,5 +10,3 @@
                 {"difficulty": 5}
         ]
 }
-
-

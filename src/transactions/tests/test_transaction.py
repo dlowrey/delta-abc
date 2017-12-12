@@ -147,5 +147,5 @@ class TestTransactions(unittest.TestCase):
         a derefrenced dict of transaction data
         """
         tnx = Transaction(**self.tnx)
-        self.assertEqual(self.tnx, dict(tnx))
+        self.assertDictEqual(self.tnx, dict(tnx))
 
