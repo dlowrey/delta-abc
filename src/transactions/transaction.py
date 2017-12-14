@@ -62,7 +62,7 @@ class Transaction(object):
                 {
                     receiver_address: string
                     amount: float
-                    spent_transaction_id: string
+                    spent: bool
                 }
 
         Unlock:

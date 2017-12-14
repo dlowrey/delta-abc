@@ -10,6 +10,7 @@ import os
 # Directories
 DATA_DIR = 'data/'
 BLOCKCHAIN_DIR = '{}{}'.format(DATA_DIR, 'blockchain/')
+TRANSACTION_DIR = '{}{}'.format(DATA_DIR, 'transactions/')
 # Files
 INFO_FILE = '{}{}'.format(DATA_DIR, 'info.json')
 UNSPENT_OUTPUTS = '{}{}'.format(DATA_DIR, 'unspent_outputs.txt')
@@ -41,6 +42,9 @@ def create_info_file():
 def create_blockchain_dir():
     os.mkdir(BLOCKCHAIN_DIR)
 
+
+def create_transaction_dir():
+    os.mkdir(TRANSACTION_DIR)
 
 def create_unspent_outputs_file():
     open(UNSPENT_OUTPUTS, 'w').close()

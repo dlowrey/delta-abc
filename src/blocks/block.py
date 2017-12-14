@@ -116,7 +116,10 @@ class Block(object):
 
     def add_transaction(self, tnx):
         """
-        Add a transaction object to this block.
+        Add a transaction to this block.
+
+        Args:
+            tnx: a dict representation of a transaction object
 
         Returns:
             the newly added transaction object (dict)

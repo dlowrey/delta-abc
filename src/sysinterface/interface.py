@@ -12,44 +12,65 @@ from src.blocks.block import Block
 from src.data-access import access, files
 
 
-def on_start(options=None):
+def send_transaction(receiver_address, amount):
     """
-    Tasks to complete when the system starts up
+    Send a transaction.
+    """
+    sender_address = access.get_address()
+    private_key = access.get_private_key()
+    public_key = access.get_public_key()
+
+    new_tnx = Transaction()
+    try:
+        new_tnx.add_output(sender_address, receiver_address, amount)
+        new_tnx.finalize(private_key, public_key)
+        access.save_transaction(new_tnx)
+        network.send_transaction(new_tnx)
+        return 'Sent:\namount: {}\nto: {}\nfrom: {}'.format(
+                amount, receiver_address, sender_address)
+    except ValueError as e:
+        access.logit(e)
+        return e
+
+def start_mining():
+    """
+    Begin mining a new block with received or created 
+    transactions
     """
 
-    check_keys()
+    new_block = Block()
+    # get transactions waiting to be put in a block
+    waiting_transactions = access.get_waiting_transactoins()
+    for tnx in waiting_transactions:
+        new_block.add_transaction(tnx)
+
+    block_dict = block.mine()
+    block_id = access.save_block(block)
+    # save any transactions addressed to this node
+    my_tnx_count, my_total = access.save_my_outputs(block)
+
+    response = 'Saved block {}'.format(block_id)
+    if my_tnx_count:
+        # update the balance for this node
+        old_balance = access.get_balance()
+        new_balance = old_balance + my_total
+        access.set_balance(new_balance)
+        response += ' Your new balance is {}'.format(new_balance)
+
+    return response
+
+def save_transaction(tnx_dict):
+    tnx = Tnx(**tnx_dict)
+    success = access.save_transaction(tnx)
+    if success:
+        return 'Transaction succesfully saved.'
+    else:
+        return 'Invalid transaction was not saved.'
 
 
-def check_keys():
-    """
-    Check the info file for the existence of private/public keys.
-    """
-    rewrite = False
-    with open(files.INFO_FILE, 'r+') as f:
-        info = json.load(f)
-        private_key = info['wallet']['private_key']
-        public_key = info['wallet']['public_key']
-        # Check for a private key
-        if not private_key:
-            rewrite = True
-            a = input('Do you have a private key? (y/n): ')
-            if a == 'y':
-                private_key = input('Please input your private key: ')
-            else:
-                private_key = SigningKey.generate(curve=NIST256p).to_string() 
-        # Check for a public key
-        if not public_key:
-            rewrite = True
-            public_key = SigningKey.from_string(
-                    private_key,
-                    curve=NIST256p).get_verifying_key().to_string()
-        # If the user was missing a private or public key, write the new ones
-        if rewrite:
-            info['wallet']['private_key'] = private_key
-            info['wallet']['public_key'] = public_key
-            f.truncate(0)
-            f.seek(0)
-            json.dump(info, f)
-
-def on_stop():
-    pass
+def reset():
+    a = input("Are you sure you want to reset the system?\n"
+              "All data and keys will be lost. (y/n): ")
+    if a == "y":
+        files.reset_all()
+        return "System successfully reset"
