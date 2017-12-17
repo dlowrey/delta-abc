@@ -7,8 +7,8 @@ from base64 import b64encode
 import unittest
 import json
 import os
-from src.persistence import files
-from src.transactions.transaction import Transaction
+from src.persistence import files, access
+from src.transactions.transaction import Transaction, verify
 from ecdsa import SigningKey, NIST256p
 
 
@@ -90,7 +90,12 @@ class TestTransactions(unittest.TestCase):
         Test adding a single output to a new transaction
         """
         tnx = Transaction()
-        actual = tnx.add_output('senderaddress', 'receiveraddress', 10)
+        actual = tnx.add_output(
+                'senderaddress',
+                'receiveraddress',
+                10,
+                access.get_inputs(10)
+                )
 
         expected = [{'amount': 10, 'receiver_address': 'receiveraddress'},
                     {'amount': 15.0, 'receiver_address': 'senderaddress'}]
@@ -103,7 +108,12 @@ class TestTransactions(unittest.TestCase):
         """
         with self.assertRaises(ValueError):
             tnx = Transaction()
-            tnx.add_output('senderaddress', 'receiveraddress', 100)
+            actual = tnx.add_output(
+                    'senderaddress',
+                    'receiveraddress',
+                    10,
+                    access.get_inputs(100)
+                    )
 
     def test_finialize_transaction(self):
         """
@@ -111,7 +121,12 @@ class TestTransactions(unittest.TestCase):
         (completing and signing it)
         """
         tnx = Transaction()
-        tnx.add_output('senderaddress', 'receiveraddress', 10)
+        actual = tnx.add_output(
+                'senderaddress',
+                'receiveraddress',
+                10,
+                access.get_inputs(10)
+                )
         actual_tnx_id = tnx.finalize(self.sender_private_key,
                                      self.sender_public_key)
         not_expected = None
@@ -122,10 +137,15 @@ class TestTransactions(unittest.TestCase):
         Test verifying a valid transaction
         """
         tnx = Transaction()
-        tnx.add_output('senderaddress', 'receiveraddress', 10)
+        actual = tnx.add_output(
+                'senderaddress',
+                'receiveraddress',
+                10,
+                access.get_inputs(10)
+                )
         tnx.finalize(self.sender_private_key, self.sender_public_key)
 
-        auth, offender = tnx.verify()
+        auth, offender = verify(tnx)
         self.assertTrue(auth)
 
     def test_verify_invalid_transaction(self):
@@ -134,14 +154,19 @@ class TestTransactions(unittest.TestCase):
         output
         """
         tnx = Transaction()
-        tnx.add_output('senderaddress', 'receiveraddress', 20)
+        actual = tnx.add_output(
+                'senderaddress',
+                'receiveraddress',
+                20,
+                access.get_inputs(20)
+                )
         tnx.finalize(self.sender_private_key, self.sender_public_key)
 
         # mess with transaction
         # this will invalidate the signature
         tnx.outputs[0]['receiver_address'] = 'evilmyaddress'
 
-        auth, offender = tnx.verify()
+        auth, offender = verify(tnx)
         self.assertFalse(auth)
         self.assertIsNone(offender)
 

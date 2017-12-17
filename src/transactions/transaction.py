@@ -103,7 +103,7 @@ class Transaction(object):
             self.outputs = kwargs.pop('outputs')
             self.output_count = kwargs.pop('output_count')
 
-    def add_output(self, sender_address, receiver_address, amount):
+    def add_output(self, sender_address, receiver_address, amount, inputs):
         """
         Add a new output (and corresponding inputs).
         The supporting input's must be fetched from the blockchain data
@@ -116,33 +116,27 @@ class Transaction(object):
 
         Returns:
             a list of output objects (dicts) that were added
-        Raises:
-            A ValueError if there were insufficient funds.
         """
-        # Retrieve necessary inputs from the data files
-        total, inputs = access.get_inputs(amount)
+        total = inputs[0]
+        t_inputs = inputs[1]
+        # add the inputs
+        self.inputs += t_inputs
+        self.input_count += len(t_inputs)
 
-        if not total:
-            raise ValueError('Insufficient Funds')
-        else:
-            # add the inputs
-            self.inputs += inputs
-            self.input_count += len(inputs)
+        # add the output
+        self.outputs.append({'receiver_address': receiver_address,
+                             'amount': amount})
+        self.output_count += 1
 
-            # add the output
-            self.outputs.append({'receiver_address': receiver_address,
-                                 'amount': amount})
+        # If there is still currency left over in the inputs,
+        # refund the sender by adding an output addressed to
+        # the sender's address
+        if total > amount:
+            self.outputs.append({'receiver_address': sender_address,
+                                 'amount': total - amount})
             self.output_count += 1
 
-            # If there is still currency left over in the inputs,
-            # refund the sender by adding an output addressed to
-            # the sender's address
-            if total > amount:
-                self.outputs.append({'receiver_address': sender_address,
-                                     'amount': total - amount})
-                self.output_count += 1
-
-            return self.outputs
+        return self.outputs
 
     def finalize(self, sender_private_key, sender_public_key):
         """
@@ -160,7 +154,7 @@ class Transaction(object):
         """
         if not self.transaction_id:  # Do not re-sign a finalized transaction
             signing_key = sender_private_key
-            message = self.__compose_message()
+            message = self.get_message()
             signature = signing_key.sign(message, hashfunc=sha256)
             # For the Key object's and Signature objects (byte strings) to
             # be JSON serialized they must be encoded with base64, and then
@@ -171,79 +165,7 @@ class Transaction(object):
                 ).decode()
         return self.transaction_id
 
-    def verify(self):
-        """
-        Verify the authenticity of a transaction object.
-        Verifying checks the unlocking signature against the transaction,
-        which will only be authentic if nothing was tampered with. After this,
-        each input is checked against the blockchain for existence and right
-        of use by the sender.
-
-        Returns:
-            A tuple (boolean, dict) where the first is whether or not the
-            transaction is valid, and the second is None unless the transaction
-            was invalid by unrightful use of input, in which case it is the
-            offending input.
-        """
-        authentic = True
-        offender = None
-
-        sender_address = self.unlock['sender_public_key']  # sender's address
-        # The sender's public key was sent over as a string, we must
-        # convert it back into a Key object. First it is converted from its
-        # base64 encoding back into a byte string, and then from a byte string
-        # into a Key object
-        sender_byte_address = b64decode(sender_address.encode())
-        verify_key = VerifyingKey.from_string(sender_byte_address,
-                                              curve=NIST256p)
-        # The same must be done for the signature, which was also
-        # sent over as a string. COnvert from base64 encoding to byte string,
-        # and from byte string to Signature object
-        signature = b64decode(self.unlock['signature'].encode())
-        # Re-build the message from scratch to expose any
-        # invalid data in the transaction
-        message = self.__compose_message()
-
-        # The transaction's message (all protected data) is verified
-        # using the sender's public key. Because the sender signed with
-        # a private key and this public key is mathematically related to it,
-        # we can use it to authenticate the transaction signature.
-        try:
-            verify_key.verify(signature, message, hashfunc=sha256)
-        except BadSignatureError:
-            # An invalid signature can mean that the transaction was
-            # either tampered with, or the wrong public key was used.
-            authentic = False
-
-        if authentic:
-            # Check that the sender has the rights to use all of the
-            # inputs he uses in the transaction.
-            for t_input in self.inputs:
-                # find the refrenced output used as an input
-                refrenced_output = access.find_output(
-                    t_input['transaction_id'],
-                    t_input['block_id'],
-                    t_input['output_index'])
-
-                # make sure the refrenced output exists
-                if not refrenced_output:
-                    authentic = False
-                    offender = t_input
-                    break
-                # make sure refrenced output is addressed transaction's sender
-                elif refrenced_output['receiver_address'] != sender_address:
-                    authentic = False
-                    offender = t_input
-                    break
-                # make sure transaction output hasnt already been spent
-                elif refrenced_output['spent_transaction_id']:
-                    authentic = False
-                    offender = t_input
-                    break
-
-        return authentic, offender
-
-    def __compose_message(self):
+    def get_message(self):
         """
         Compose a byte string message over the data in this transaction.
         The message contains all sensitive data that needs to be protected by
@@ -282,3 +204,77 @@ class Transaction(object):
         yield 'inputs', self.inputs,
         yield 'output_count', self.output_count,
         yield 'outputs', self.outputs
+
+
+def verify(tnx):
+    """
+    Verify the authenticity of a transaction object.
+    Verifying checks the unlocking signature against the transaction,
+    which will only be authentic if nothing was tampered with. After this,
+    each input is checked against the blockchain for existence and right
+    of use by the sender.
+
+    Returns:
+        A tuple (boolean, dict) where the first is whether or not the
+        transaction is valid, and the second is None unless the transaction
+        was invalid by unrightful use of input, in which case it is the
+        offending input.
+    """
+    authentic = True
+    offender = None
+
+    sender_address = tnx.unlock['sender_public_key']  # sender's address
+    # The sender's public key was sent over as a string, we must
+    # convert it back into a Key object. First it is converted from its
+    # base64 encoding back into a byte string, and then from a byte string
+    # into a Key object
+    sender_byte_address = b64decode(sender_address.encode())
+    verify_key = VerifyingKey.from_string(sender_byte_address,
+                                          curve=NIST256p)
+    # The same must be done for the signature, which was also
+    # sent over as a string. COnvert from base64 encoding to byte string,
+    # and from byte string to Signature object
+    signature = b64decode(tnx.unlock['signature'].encode())
+    # Re-build the message from scratch to expose any
+    # invalid data in the transaction
+    message = tnx.get_message()
+
+    # The transaction's message (all protected data) is verified
+    # using the sender's public key. Because the sender signed with
+    # a private key and this public key is mathematically related to it,
+    # we can use it to authenticate the transaction signature.
+    try:
+        verify_key.verify(signature, message, hashfunc=sha256)
+    except BadSignatureError:
+        # An invalid signature can mean that the transaction was
+        # either tampered with, or the wrong public key was used.
+        authentic = False
+
+    if authentic:
+        # Check that the sender has the rights to use all of the
+        # inputs he uses in the transaction.
+        for t_input in tnx.inputs:
+            # find the refrenced output used as an input
+            refrenced_output = access.find_output(
+                t_input['transaction_id'],
+                t_input['block_id'],
+                t_input['output_index'])
+
+            # make sure the refrenced output exists
+            if not refrenced_output:
+                authentic = False
+                offender = t_input
+                break
+            # make sure refrenced output is addressed transaction's sender
+            elif refrenced_output['receiver_address'] != sender_address:
+                authentic = False
+                offender = t_input
+                break
+            # make sure transaction output hasnt already been spent
+            elif refrenced_output['spent_transaction_id']:
+                authentic = False
+                offender = t_input
+                break
+
+    return authentic, offender
+

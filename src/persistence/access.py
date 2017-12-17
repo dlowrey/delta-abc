@@ -18,37 +18,37 @@ def get_inputs(amount):
         amount: the minimum amount the found inputs should cover
 
     Returns:
-        A tuple (total, inputs) where:
-            total: the amount this input will cover
-            inputs: an array containging the needed inputs
+        inputs: an array containging the needed inputs
     """
     total = 0
     inputs = []
     available = get_balance()
-    if available >= amount:
-        try:
-            # Read in all unspent transaction outputs and
-            # add as many needed to cover the specified amount
-            total = 0
-            inputs = []
-            with open(files.UNSPENT_OUTPUTS, 'r+') as f:
-                all_inputs = [json.loads(i) for i in f.readlines()]
-                for t_input in all_inputs:
-                    total += t_input['amount']
-                    inputs.append(t_input)
-                    if total >= amount:
-                        break
-                # Erase the contents of the file and re-write the
-                # unspent transaction outputs that were not used
-                f.truncate(0)
-                f.seek(0)
-                all_inputs = [i for i in all_inputs if i not in inputs]
-                for t_input in all_inputs:
-                    f.write('{}\n'.format(t_input))
-        except FileNotFoundError as err:
-            print(err)
+    if available < amount:
+        raise ValueError('Insufficient Funds: {} < {}'.format(
+            available, total))
+    try:
+        # Read in all unspent transaction outputs and
+        # add as many needed to cover the specified amount
+        total = 0
+        inputs = []
+        with open(files.UNSPENT_OUTPUTS, 'r+') as f:
+            all_inputs = [json.loads(i) for i in f.readlines()]
+            for t_input in all_inputs:
+                total += t_input['amount']
+                inputs.append(t_input)
+                if total >= amount:
+                    break
+            # Erase the contents of the file and re-write the
+            # unspent transaction outputs that were not used
+            f.truncate(0)
+            f.seek(0)
+            all_inputs = [i for i in all_inputs if i not in inputs]
+            for t_input in all_inputs:
+                f.write('{}\n'.format(t_input))
+    except FileNotFoundError as err:
+        print(err)
 
-        set_balance(available-total)  # update this node's balance
+    set_balance(available-total)  # update this node's balance
     return total, inputs
 
 
