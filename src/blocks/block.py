@@ -202,4 +202,3 @@ class Block(object):
         yield 'data', self.data
         yield 'version', self.version
         yield 'mining_proof', self.mining_proof
-

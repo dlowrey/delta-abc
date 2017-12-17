@@ -46,5 +46,6 @@ def create_blockchain_dir():
 def create_transaction_dir():
     os.mkdir(TRANSACTION_DIR)
 
+
 def create_unspent_outputs_file():
     open(UNSPENT_OUTPUTS, 'w').close()

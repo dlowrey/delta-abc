@@ -152,4 +152,3 @@ class TestTransactions(unittest.TestCase):
         """
         tnx = Transaction(**self.tnx)
         self.assertDictEqual(self.tnx, dict(tnx))
-

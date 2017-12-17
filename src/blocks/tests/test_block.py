@@ -86,4 +86,3 @@ class TestBlocks(unittest.TestCase):
         block = Block(**self.block)
         auth = block.verify()
         self.assertFalse(auth)
-

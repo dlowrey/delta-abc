@@ -100,27 +100,12 @@ def save_transaction(new_tnx):
         return False
 
 
-def get_waiting_transactions():
-    """
-    Get a list of transactions that have not been
-    placed in a block
-    """
-    transaction_files = files.get_transaction_files()
-    transactions = []
-    for index, tnx in enumerate(transaction_file):
-        with open(tnx, 'r') as f:
-            tnx = json.load(f)
-            transactions.append(tnx)
-    return transactions
-        
-            
-
 def save_block(block):
     """
-    Save a block to the blockchain. 
-    
+    Save a block to the blockchain.
+
     Args:
-        block: 
+        block:
             the newly mined/received block to save
     Returns:
         the block_id of the newly dsaved block
@@ -190,7 +175,6 @@ def get_mining_difficulty(version):
 
 def get_previous_block_id():
     """
-    
     Get the last block's id on the block chain
 
     Returns:
@@ -240,7 +224,7 @@ def set_balance(new_balance):
     """
     with open(files.INFO_FILE, 'r+') as f:
         info = json.load(f)
-        info['wallet']['balance'] = new_balance 
+        info['wallet']['balance'] = new_balance
         f.truncate(0)
         f.seek(0)
         json.dump(info, f)
@@ -294,4 +278,3 @@ def get_public_key():
     with open(files.INFO_FILE, 'r') as f:
         info = json.load(f)
     return info['wallet']['public_key']
-
