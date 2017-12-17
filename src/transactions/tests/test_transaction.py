@@ -4,11 +4,10 @@ including creating, adding outputs, finalizing (signing),
 verifying, recieving from network.
 """
 from base64 import b64encode
-from time import time
-from datetime import datetime
 import unittest
 import json
 import os
+from src.persistence import files
 from src.transactions.transaction import Transaction
 from ecdsa import SigningKey, NIST256p
 
@@ -49,15 +48,16 @@ class TestTransactions(unittest.TestCase):
             }
 
         # mock a block to use when verifying a new transaction
-        timestamp = datetime.fromtimestamp(time()).strftime('%Y-%m-%d %H:%M:%S')
         self.block = {
-            'previous_block_id': 'previousblockid',
-            'timestamp': timestamp,
+            'block_id': 'testblock',
+            'mining_proof': 0,  # don't care
+            'previous_block_id': 'previousblockid',  # don't care
+            'timestamp': 'today',  # don't care
             'data': {'faketransactionid': self.tnx}
             }
 
         # give a balance of 25 for testing
-        with open('data/info.json', 'r+') as f:
+        with open(files.INFO_FILE, 'r+') as f:
             self.saved_info = f.read()
             info = json.loads(self.saved_info)
             f.truncate(0)
@@ -66,11 +66,11 @@ class TestTransactions(unittest.TestCase):
             json.dump(info, f)
 
         # write the unspent output to it's file
-        with open('data/unspent_outputs.json', 'w') as f:
+        with open(files.UNSPENT_OUTPUTS, 'w') as f:
             f.write('{}\n'.format(json.dumps(self.unspent_output)))
 
         # write the block to its file
-        with open('data/blockchain/blocktestblock.json', 'w') as f:
+        with open(files.BLOCKCHAIN_DIR + 'testblock.json', 'w') as f:
             json.dump(self.block, f)
 
     def tearDown(self):
@@ -79,10 +79,10 @@ class TestTransactions(unittest.TestCase):
         used.
         """
         # remove any data we used
-        os.remove('data/unspent_outputs.json')
-        os.remove('data/blockchain/blocktestblock.json')
+        os.remove(files.UNSPENT_OUTPUTS)
+        os.remove(files.BLOCKCHAIN_DIR + 'testblock.json')
         # set info back to original
-        with open('data/info.json', 'w') as f:
+        with open(files.INFO_FILE, 'w') as f:
             f.write(self.saved_info)
 
     def test_add_transaction_output(self):
@@ -152,4 +152,3 @@ class TestTransactions(unittest.TestCase):
         """
         tnx = Transaction(**self.tnx)
         self.assertDictEqual(self.tnx, dict(tnx))
-

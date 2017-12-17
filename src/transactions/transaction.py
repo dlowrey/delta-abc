@@ -8,7 +8,7 @@ from base64 import b64encode, b64decode
 from hashlib import sha256
 from ecdsa import VerifyingKey, NIST256p
 from ecdsa import BadSignatureError
-from src import data_access
+from src.persistence import access
 
 
 class Transaction(object):
@@ -62,7 +62,7 @@ class Transaction(object):
                 {
                     receiver_address: string
                     amount: float
-                    spent_transaction_id: string
+                    spent: bool
                 }
 
         Unlock:
@@ -120,7 +120,7 @@ class Transaction(object):
             A ValueError if there were insufficient funds.
         """
         # Retrieve necessary inputs from the data files
-        total, inputs = data_access.get_inputs(amount)
+        total, inputs = access.get_inputs(amount)
 
         if not total:
             raise ValueError('Insufficient Funds')
@@ -220,7 +220,7 @@ class Transaction(object):
             # inputs he uses in the transaction.
             for t_input in self.inputs:
                 # find the refrenced output used as an input
-                refrenced_output = data_access.find_output(
+                refrenced_output = access.find_output(
                     t_input['transaction_id'],
                     t_input['block_id'],
                     t_input['output_index'])

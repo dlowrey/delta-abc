@@ -4,6 +4,7 @@ the block chain files and other info stored in the /data/
 directory
 """
 import json
+from src.persistence import files
 
 
 def get_inputs(amount):
@@ -30,7 +31,7 @@ def get_inputs(amount):
             # add as many needed to cover the specified amount
             total = 0
             inputs = []
-            with open('data/unspent_outputs.json', 'r+') as f:
+            with open(files.UNSPENT_OUTPUTS, 'r+') as f:
                 all_inputs = [json.loads(i) for i in f.readlines()]
                 for t_input in all_inputs:
                     total += t_input['amount']
@@ -68,7 +69,7 @@ def find_output(transaction_id, block_id, output_index):
     """
     # Read the specified block's file and check for a transaction
     # output that matches the parameters
-    with open('data/blockchain/block{}.json'.format(block_id), 'r+') as f:
+    with open(files.BLOCKCHAIN_DIR + '{}.json'.format(block_id), 'r+') as f:
         block = json.load(f)
         try:
             block_data = block['data']
@@ -89,11 +90,11 @@ def find_output(transaction_id, block_id, output_index):
 def get_mining_difficulty(version):
     """
     Get the version's mining difficulty from the info file
-    
+
     Returns:
         the version's difficulty as an int
     """
-    with open('data/info.json') as f:
+    with open(files.INFO_FILE) as f:
         info = json.load(f)
     return info['versions'][version]['difficulty']
 
@@ -105,7 +106,7 @@ def get_previous_block_id():
     Returns:
         block id as a string
     """
-    with open('data/info.json', 'r') as f:
+    with open(files.INFO_FILE, 'r') as f:
         info = json.load(f)
     return info['previous_block_id']
 
@@ -118,7 +119,7 @@ def set_previous_block_id(new_id):
     Returns:
         the info dict
     """
-    with open('data/info.json', 'r+') as f:
+    with open(files.INFO_FILE, 'r+') as f:
         info = json.load(f)
         info['previous_block_id'] = new_id
         f.truncate(0)
@@ -135,7 +136,7 @@ def get_balance():
         A float representing how much cryptocurrency this
         node has addressed to it in the blockchain.
     """
-    with open('data/info.json', 'r') as f:
+    with open(files.INFO_FILE, 'r') as f:
         info = json.load(f)
     return info['wallet']['balance']
 
@@ -147,7 +148,7 @@ def set_balance(new_balance):
     Returns:
         the info (dict) corresponding to this node
     """
-    with open('data/info.json', 'r+') as f:
+    with open(files.INFO_FILE, 'r+') as f:
         info = json.load(f)
         info['wallet']['balance'] = new_balance
         f.truncate(0)
@@ -160,10 +161,46 @@ def get_current_version():
     """
     Get the version that the network is
     currently running on.
-    
+
     Returns:
         the current version number
     """
-    with open('data/info.json', 'r') as f:
-        info = json.loads(f.read())
+    with open(files.INFO_FILE, 'r') as f:
+        info = json.load(f)
     return info['current_version']
+
+
+def get_address():
+    """
+    Get the address from the info file.
+
+    Returns:
+        string representation of this node's address
+    """
+    with open(files.INFO_FILE, 'r') as f:
+        info = json.load(f)
+    return info['wallet']['address']
+
+
+def get_private_key():
+    """
+    Get the private key from the info file.
+
+    Returns:
+        string representation of this node's private key
+    """
+    with open(files.INFO_FILE, 'r') as f:
+        info = json.load(f)
+    return info['wallet']['private_key']
+
+
+def get_public_key():
+    """
+    Get the public key from the info file.
+
+    Returns:
+        string representation of this node's public key
+    """
+    with open(files.INFO_FILE, 'r') as f:
+        info = json.load(f)
+    return info['wallet']['public_key']
