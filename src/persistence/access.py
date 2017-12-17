@@ -91,7 +91,7 @@ def save_transaction(new_tnx):
     """
     Verify and save a new transaction.
     """
-    if new_tnx.verify()
+    if new_tnx.verify():
         tnx_id = new_tnx.get_transaction_id()
         with open('{}{}'.format(files.TRANSACTION_DIR, tnx_id), 'w') as f:
             json.dump(dict(new_tnx), f)
