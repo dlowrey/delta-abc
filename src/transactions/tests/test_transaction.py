@@ -8,7 +8,7 @@ import unittest
 import json
 import os
 from src.persistence import files, access
-from src.transactions.transaction import Transaction, verify
+from src.transactions.transaction import Transaction
 from ecdsa import SigningKey, NIST256p
 
 
@@ -108,12 +108,13 @@ class TestTransactions(unittest.TestCase):
         """
         with self.assertRaises(ValueError):
             tnx = Transaction()
-            actual = tnx.add_output(
+            tnx.add_output(
                     'senderaddress',
                     'receiveraddress',
                     10,
                     access.get_inputs(100)
                     )
+        self.assertRaises(ValueError)
 
     def test_finialize_transaction(self):
         """
@@ -121,7 +122,7 @@ class TestTransactions(unittest.TestCase):
         (completing and signing it)
         """
         tnx = Transaction()
-        actual = tnx.add_output(
+        tnx.add_output(
                 'senderaddress',
                 'receiveraddress',
                 10,
@@ -137,7 +138,7 @@ class TestTransactions(unittest.TestCase):
         Test verifying a valid transaction
         """
         tnx = Transaction()
-        actual = tnx.add_output(
+        tnx.add_output(
                 'senderaddress',
                 'receiveraddress',
                 10,
@@ -145,7 +146,7 @@ class TestTransactions(unittest.TestCase):
                 )
         tnx.finalize(self.sender_private_key, self.sender_public_key)
 
-        auth, offender = verify(tnx)
+        auth, offender = Transaction.verify(tnx)
         self.assertTrue(auth)
 
     def test_verify_invalid_transaction(self):
@@ -154,7 +155,7 @@ class TestTransactions(unittest.TestCase):
         output
         """
         tnx = Transaction()
-        actual = tnx.add_output(
+        tnx.add_output(
                 'senderaddress',
                 'receiveraddress',
                 20,
@@ -166,7 +167,7 @@ class TestTransactions(unittest.TestCase):
         # this will invalidate the signature
         tnx.outputs[0]['receiver_address'] = 'evilmyaddress'
 
-        auth, offender = verify(tnx)
+        auth, offender = Transaction.verify(tnx)
         self.assertFalse(auth)
         self.assertIsNone(offender)
 
