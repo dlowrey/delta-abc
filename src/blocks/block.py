@@ -7,7 +7,7 @@ verification of blocks.
 from hashlib import sha256
 from datetime import datetime
 from time import time
-from src.persistence import access
+from src.blocks import access
 
 
 class Block(object):

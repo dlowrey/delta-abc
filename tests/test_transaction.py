@@ -7,7 +7,8 @@ from base64 import b64encode
 import unittest
 import json
 import os
-from src.persistence import files, access
+from src import files
+from src.transactions import access
 from src.transactions.transaction import Transaction
 from ecdsa import SigningKey, NIST256p
 
@@ -146,7 +147,7 @@ class TestTransactions(unittest.TestCase):
                 )
         tnx.finalize(self.sender_private_key, self.sender_public_key)
 
-        auth, offender = Transaction.verify(tnx)
+        auth, offender = access.verify(tnx)
         self.assertTrue(auth)
 
     def test_verify_invalid_transaction(self):
@@ -167,7 +168,7 @@ class TestTransactions(unittest.TestCase):
         # this will invalidate the signature
         tnx.outputs[0]['receiver_address'] = 'evilmyaddress'
 
-        auth, offender = Transaction.verify(tnx)
+        auth, offender = access.verify(tnx)
         self.assertFalse(auth)
         self.assertIsNone(offender)
 

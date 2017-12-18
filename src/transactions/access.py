@@ -1,10 +1,9 @@
-"""
-Functions that allow acess to persisted data such as
-the block chain files and other info stored in the /data/
-directory
-"""
 import json
-from src.persistence import files
+from hashlib import sha256
+from base64 import b64encode, b64decode
+from ecdsa import VerifyingKey, NIST256p
+from ecdsa import BadSignatureError
+from src import files
 
 
 def get_inputs(amount):
@@ -87,45 +86,77 @@ def find_output(transaction_id, block_id, output_index):
     return target_output
 
 
-def get_mining_difficulty(version):
+def verify(tnx):
     """
-    Get the version's mining difficulty from the info file
+    Verify the authenticity of a transaction object.
+    Verifying checks the unlocking signature against the transaction,
+    which will only be authentic if nothing was tampered with. After this,
+    each input is checked against the blockchain for existence and right
+    of use by the sender.
 
     Returns:
-        the version's difficulty as an int
+        A tuple (boolean, dict) where the first is whether or not the
+        transaction is valid, and the second is None unless the transaction
+        was invalid by unrightful use of input, in which case it is the
+        offending input.
     """
-    with open(files.INFO_FILE) as f:
-        info = json.load(f)
-    return info['versions'][version]['difficulty']
+    authentic = True
+    offender = None
 
+    sender_address = tnx.unlock['sender_public_key']  # sender's address
+    # The sender's public key was sent over as a string, we must
+    # convert it back into a Key object. First it is converted from its
+    # base64 encoding back into a byte string, and then from a byte string
+    # into a Key object
+    sender_byte_address = b64decode(sender_address.encode())
+    verify_key = VerifyingKey.from_string(sender_byte_address,
+                                          curve=NIST256p)
+    # The same must be done for the signature, which was also
+    # sent over as a string. COnvert from base64 encoding to byte string,
+    # and from byte string to Signature object
+    signature = b64decode(tnx.unlock['signature'].encode())
+    # Re-build the message from scratch to expose any
+    # invalid data in the transaction
+    message = tnx.get_message()
 
-def get_previous_block_id():
-    """
-    Get the last block's id on the block chain
+    # The transaction's message (all protected data) is verified
+    # using the sender's public key. Because the sender signed with
+    # a private key and this public key is mathematically related to it,
+    # we can use it to authenticate the transaction signature.
+    try:
+        verify_key.verify(signature, message, hashfunc=sha256)
+    except BadSignatureError:
+        # An invalid signature can mean that the transaction was
+        # either tampered with, or the wrong public key was used.
+        authentic = False
 
-    Returns:
-        block id as a string
-    """
-    with open(files.INFO_FILE, 'r') as f:
-        info = json.load(f)
-    return info['previous_block_id']
+    if authentic:
+        # Check that the sender has the rights to use all of the
+        # inputs he uses in the transaction.
+        for t_input in tnx.inputs:
+            # find the refrenced output used as an input
+            refrenced_output = find_output(
+                t_input['transaction_id'],
+                t_input['block_id'],
+                t_input['output_index'])
 
+            # make sure the refrenced output exists
+            if not refrenced_output:
+                authentic = False
+                offender = t_input
+                break
+            # make sure refrenced output is addressed transaction's sender
+            elif refrenced_output['receiver_address'] != sender_address:
+                authentic = False
+                offender = t_input
+                break
+            # make sure transaction output hasnt already been spent
+            elif refrenced_output['spent_transaction_id']:
+                authentic = False
+                offender = t_input
+                break
 
-def set_previous_block_id(new_id):
-    """
-    Set the previous_block_id in the info file.
-    This is the ID of the latest block on the blockchain.
-
-    Returns:
-        the info dict
-    """
-    with open(files.INFO_FILE, 'r+') as f:
-        info = json.load(f)
-        info['previous_block_id'] = new_id
-        f.truncate(0)
-        f.seek(0)
-        json.dump(info, f)
-    return info
+    return authentic, offender
 
 
 def get_balance():
@@ -155,52 +186,3 @@ def set_balance(new_balance):
         f.seek(0)
         json.dump(info, f)
     return info
-
-
-def get_current_version():
-    """
-    Get the version that the network is
-    currently running on.
-
-    Returns:
-        the current version number
-    """
-    with open(files.INFO_FILE, 'r') as f:
-        info = json.load(f)
-    return info['current_version']
-
-
-def get_address():
-    """
-    Get the address from the info file.
-
-    Returns:
-        string representation of this node's address
-    """
-    with open(files.INFO_FILE, 'r') as f:
-        info = json.load(f)
-    return info['wallet']['address']
-
-
-def get_private_key():
-    """
-    Get the private key from the info file.
-
-    Returns:
-        string representation of this node's private key
-    """
-    with open(files.INFO_FILE, 'r') as f:
-        info = json.load(f)
-    return info['wallet']['private_key']
-
-
-def get_public_key():
-    """
-    Get the public key from the info file.
-
-    Returns:
-        string representation of this node's public key
-    """
-    with open(files.INFO_FILE, 'r') as f:
-        info = json.load(f)
-    return info['wallet']['public_key']
