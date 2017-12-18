@@ -4,7 +4,7 @@ scratch (by adding outputs) or from a network received json
 transaction (passed in as a dict). Hanldes the signing and
 verifying
 """
-from base64 import b64encode, b64decode
+from base64 import b64encode
 from hashlib import sha256
 
 

@@ -1,6 +1,6 @@
 import json
 from hashlib import sha256
-from base64 import b64encode, b64decode
+from base64 import b64decode
 from ecdsa import VerifyingKey, NIST256p
 from ecdsa import BadSignatureError
 from src import files
