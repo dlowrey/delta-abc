@@ -16,7 +16,8 @@ class Block(object):
         Create a Block object.
         A new Block object can be created by passing in a dict of values
         from a pre-existing block, or by building one from the ground
-        up by not providing any parameters.
+        up by providing the previous_block_id, version, and difficulty
+        parameters to the constructor.
 
         Format (returned when casting Block to a dict())
             {
@@ -25,6 +26,7 @@ class Block(object):
                 timestamp: string,
                 data: dict,
                 version: string,
+                difficulty: int,
                 mining_proof: int
             }
 
