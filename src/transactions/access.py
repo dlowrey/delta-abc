@@ -1,3 +1,6 @@
+"""
+File access for Transaction objects
+"""
 import json
 from hashlib import sha256
 from base64 import b64decode

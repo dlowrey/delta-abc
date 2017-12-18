@@ -7,7 +7,6 @@ verification of blocks.
 from hashlib import sha256
 from datetime import datetime
 from time import time
-from src.blocks import access
 
 
 class Block(object):
@@ -17,7 +16,8 @@ class Block(object):
         Create a Block object.
         A new Block object can be created by passing in a dict of values
         from a pre-existing block, or by building one from the ground
-        up by not providing any parameters.
+        up by providing the previous_block_id, version, and difficulty
+        parameters to the constructor.
 
         Format (returned when casting Block to a dict())
             {
@@ -26,6 +26,7 @@ class Block(object):
                 timestamp: string,
                 data: dict,
                 version: string,
+                difficulty: int,
                 mining_proof: int
             }
 
@@ -45,20 +46,22 @@ class Block(object):
                 the version of the system when this block was mined
                 contains information like difficulty
 
+            difficulty:
+                the difficulty that the block was mined with (changes from
+                version to version)
+
             mining_proof:
                 a random integer that will result in the target difficulty for
                 the version being met
 
         """
         self.block_id = kwargs.pop('block_id', None)
-        self.previous_block_id = kwargs.pop(
-                'previous_block_id',
-                access.get_previous_block_id())
         self.timestamp = kwargs.pop('timestamp', None)
         self.data = kwargs.pop('data', dict())
-        self.version = kwargs.pop('version', access.get_current_version())
         self.mining_proof = kwargs.pop('mining_proof', None)
-        self.difficulty = access.get_mining_difficulty(self.version)
+        self.previous_block_id = kwargs.pop('previous_block_id')
+        self.version = kwargs.pop('version')
+        self.difficulty = kwargs.pop('difficulty')
         # Ordered data is assigned right before verifying/mining a block
         self.ordered_data = None
 
@@ -184,7 +187,8 @@ class Block(object):
         return "{0}{1}{2}".format(
                 self.previous_block_id,
                 self.ordered_data,  # data must be in consistent order
-                self.version
+                self.version,
+                self.difficulty
                 )
 
     def __iter__(self):
@@ -201,4 +205,5 @@ class Block(object):
         yield 'timestamp', self.timestamp
         yield 'data', self.data
         yield 'version', self.version
+        yield 'difficulty', self.difficulty
         yield 'mining_proof', self.mining_proof

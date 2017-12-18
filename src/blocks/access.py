@@ -1,3 +1,6 @@
+"""
+File access for Block objects
+"""
 import json
 from src import files
 
