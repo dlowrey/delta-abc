@@ -5,6 +5,7 @@ and verifying the validity of a block.
 """
 import unittest
 from src.blocks.block import Block
+from src.blocks import access
 
 
 class TestBlocks(unittest.TestCase):
@@ -31,6 +32,9 @@ class TestBlocks(unittest.TestCase):
                 }
 
         # mock a block object
+        self.prev_block_id = access.get_previous_block_id()
+        self.version = access.get_current_version()
+        self.difficulty = access.get_mining_difficulty(self.version)
         # block_id is unique to this exact block
         block_id = (
                 '089dbeed53f802941d8d25371248fc15'
@@ -39,10 +43,11 @@ class TestBlocks(unittest.TestCase):
 
         self.block = {
                 'block_id': block_id,
-                'previous_block_id': '',
+                'previous_block_id': self.prev_block_id,
                 'timestamp': '',
                 'data': {'faketransactionid': self.tnx},
-                'version': '1.0',
+                'version': self.version,
+                'difficulty': self.difficulty,
                 'mining_proof': 888108,  # unique to this exact block
                 }
 
@@ -51,7 +56,11 @@ class TestBlocks(unittest.TestCase):
         Test creating a new block and adding a single
         transaction object to it
         """
-        block = Block()
+        block = Block(
+                previous_block_id=self.prev_block_id,
+                version=self.version,
+                difficulty=self.difficulty
+                )
         actual = block.add_transaction(self.tnx)
         expected = {'faketransactionid': self.tnx}
         self.assertDictEqual(actual, expected)
@@ -60,7 +69,12 @@ class TestBlocks(unittest.TestCase):
         """
         Test the mining process on a newly created block
         """
-        block = Block()
+
+        block = Block(
+                previous_block_id=self.prev_block_id,
+                version=self.version,
+                difficulty=self.difficulty
+                )
         block.add_transaction(self.tnx)
         actual = block.mine()
         actual['timestamp'] = ''  # the timestamp will always be different
